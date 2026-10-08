@@ -25,13 +25,18 @@ RUN npm install && npm run build
 RUN mkdir -p /tmp/laravel \
     /tmp/laravel/cache \
     /tmp/laravel/sessions \
-    /tmp/laravel/views
+    /tmp/laravel/views \
+    /tmp/apache2
 
 RUN sed -i 's/Listen 80/Listen 3000/' /etc/apache2/ports.conf \
     && sed -i 's/<VirtualHost \*:80>/<VirtualHost *:3000>/' /etc/apache2/sites-available/000-default.conf \
     && sed -i 's#DocumentRoot /var/www/html#DocumentRoot /var/www/html/public#' /etc/apache2/sites-available/000-default.conf \
+    && sed -i 's#ErrorLog \${APACHE_LOG_DIR}/error.log#ErrorLog /dev/stderr#' /etc/apache2/apache2.conf \
+    && sed -i 's#ErrorLog \${APACHE_LOG_DIR}/error.log#ErrorLog /dev/stderr#' /etc/apache2/sites-available/000-default.conf \
+    && sed -i 's#CustomLog \${APACHE_LOG_DIR}/access.log combined#CustomLog /dev/stdout combined#' /etc/apache2/sites-available/000-default.conf \
     && printf '<Directory /var/www/html/public>\n    AllowOverride All\n    Require all granted\n</Directory>\n' >> /etc/apache2/sites-available/000-default.conf
 
+ENV APACHE_LOG_DIR=/tmp/apache2
 ENV APP_ENV=production
 ENV APP_DEBUG=false
 ENV APP_KEY=base64:q+vzYue4jmDMm3HAqAE3BulJtUtgDtMqlaWScI1SXNE=
