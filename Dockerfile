@@ -22,28 +22,25 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 RUN npm install && npm run build
 
-RUN mkdir -p database \
-    storage/framework/cache \
-    storage/framework/sessions \
-    storage/framework/views \
-    storage/logs \
-    bootstrap/cache \
-    && touch database/database.sqlite \
-    && chown -R www-data:www-data storage bootstrap/cache database
+RUN mkdir -p /tmp/laravel \
+    /tmp/laravel/cache \
+    /tmp/laravel/sessions \
+    /tmp/laravel/views
 
-RUN sed -i 's#DocumentRoot /var/www/html#DocumentRoot /var/www/html/public#' /etc/apache2/sites-available/000-default.conf \
+RUN sed -i 's/Listen 80/Listen 3000/' /etc/apache2/ports.conf \
+    && sed -i 's/<VirtualHost \*:80>/<VirtualHost *:3000>/' /etc/apache2/sites-available/000-default.conf \
+    && sed -i 's#DocumentRoot /var/www/html#DocumentRoot /var/www/html/public#' /etc/apache2/sites-available/000-default.conf \
     && printf '<Directory /var/www/html/public>\n    AllowOverride All\n    Require all granted\n</Directory>\n' >> /etc/apache2/sites-available/000-default.conf
 
 ENV APP_ENV=production
 ENV APP_DEBUG=false
 ENV DB_CONNECTION=sqlite
-ENV SESSION_DRIVER=file
-ENV CACHE_STORE=file
-ENV QUEUE_CONNECTION=sync
+ENV SESSION_DRIVER=array
+ENV CACHE_STORE=array
+ENV LOG_CHANNEL=stderr
+ENV VIEW_COMPILED_PATH=/tmp/laravel/views
+ENV PORT=3000
 
-EXPOSE 80
+EXPOSE 3000
 
-CMD php artisan key:generate --force && \
-    php artisan migrate --force && \
-    php artisan storage:link || true; \
-    apache2-foreground
+CMD ["apache2-foreground"]
