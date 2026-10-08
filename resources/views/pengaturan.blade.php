@@ -1,0 +1,713 @@
+@extends('layouts.app')
+
+@section('title', 'Pengaturan – BALHANA')
+
+@section('content')
+<style>
+    .settings-view {
+        --settings-text: #eeeae1;
+        --settings-muted: #aaa69d;
+        --settings-gold: #d7b77e;
+        --settings-border: rgba(231, 215, 183, .055);
+        min-width: 0;
+        color: var(--settings-text);
+    }
+
+    .settings-view,
+    .settings-view *,
+    .settings-view *::before,
+    .settings-view *::after {
+        box-sizing: border-box;
+    }
+
+    .settings-view .page-breadcrumb {
+        color: var(--settings-gold);
+        font-size: 9px;
+        letter-spacing: .045em;
+        text-transform: uppercase;
+    }
+
+    .settings-view .page-title {
+        margin: 7px 0 4px;
+        color: var(--settings-text);
+        font-size: clamp(28px, 3vw, 34px);
+        line-height: 1.15;
+        letter-spacing: -.035em;
+    }
+
+    .settings-view .page-subtitle {
+        color: var(--settings-muted);
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .settings-view .settings-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .settings-view .settings-card {
+        min-width: 0;
+        padding: 20px;
+        border: 1px solid var(--settings-border);
+        border-radius: 21px;
+        background: linear-gradient(145deg, #30312f, #2b2c2a);
+        box-shadow:
+            10px 10px 22px rgba(12, 13, 12, .42),
+            -7px -7px 18px rgba(255, 246, 225, .045),
+            inset 1px 1px 1px rgba(255, 255, 255, .02);
+    }
+
+    .settings-view .settings-title {
+        margin: 0 0 5px;
+        color: var(--settings-text);
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: -.02em;
+        line-height: 1.35;
+    }
+
+    .settings-view .settings-description {
+        margin: 0;
+        color: var(--settings-muted);
+        font-size: 10px;
+        line-height: 1.55;
+    }
+
+    .settings-view .settings-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .settings-view .settings-field {
+        min-width: 0;
+    }
+
+    .settings-view .settings-label {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--settings-muted);
+        font-size: 10px;
+    }
+
+    .settings-view .settings-control {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        min-height: 41px;
+        padding: 10px 13px;
+        border: 1px solid rgba(255, 255, 255, .025);
+        border-radius: 12px;
+        outline: none;
+        background: linear-gradient(145deg, #242523, #292a28);
+        color: var(--settings-text);
+        font: inherit;
+        font-size: 11px;
+        box-shadow:
+            inset 5px 5px 10px rgba(12, 13, 12, .44),
+            inset -3px -3px 8px rgba(255, 246, 225, .025);
+        transition: border-color .18s ease, box-shadow .18s ease;
+    }
+
+    .settings-view textarea.settings-control {
+        min-height: 68px;
+        resize: vertical;
+        line-height: 1.5;
+    }
+
+    .settings-view select.settings-control {
+        color-scheme: dark;
+        cursor: pointer;
+    }
+
+    .settings-view .settings-control::placeholder {
+        color: #817e76;
+    }
+
+    .settings-view .settings-control:focus {
+        border-color: rgba(215, 183, 126, .42);
+        box-shadow:
+            inset 3px 3px 7px rgba(12, 13, 12, .34),
+            inset -2px -2px 5px rgba(255, 246, 225, .02),
+            0 0 0 3px rgba(215, 183, 126, .08);
+    }
+
+    .settings-view .settings-control[readonly] {
+        color: #aaa69d;
+        cursor: default;
+    }
+
+    .settings-view .settings-control:focus-visible {
+        outline: 2px solid rgba(215, 183, 126, .68);
+        outline-offset: 2px;
+    }
+
+    .settings-view .settings-toggle-row {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        min-height: 25px;
+    }
+
+    .settings-view .settings-toggle {
+        position: relative;
+        display: inline-flex;
+        width: 38px;
+        height: 22px;
+        flex: 0 0 38px;
+        align-items: center;
+        padding: 3px;
+        border: 1px solid rgba(255, 255, 255, .035);
+        border-radius: 999px;
+        background: linear-gradient(145deg, #242523, #292a28);
+        cursor: pointer;
+        box-shadow:
+            inset 4px 4px 8px rgba(12, 13, 12, .46),
+            inset -2px -2px 5px rgba(255, 246, 225, .025),
+            2px 2px 5px rgba(12, 13, 12, .12);
+        transition: background .2s ease, border-color .2s ease;
+    }
+
+    .settings-view .settings-toggle::after {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #77736a;
+        content: "";
+        box-shadow:
+            2px 2px 4px rgba(12, 13, 12, .35),
+            -1px -1px 2px rgba(255, 246, 225, .08);
+        transition: transform .2s ease, background .2s ease;
+    }
+
+    .settings-view .settings-toggle:has(input:checked) {
+        border-color: rgba(215, 183, 126, .25);
+        background: linear-gradient(145deg, #725e3f, #665435);
+    }
+
+    .settings-view .settings-toggle:has(input:checked)::after {
+        background: #e1c38d;
+        transform: translateX(16px);
+    }
+
+    .settings-view .settings-toggle input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+    }
+
+    .settings-view .settings-toggle:focus-within {
+        outline: 2px solid rgba(215, 183, 126, .55);
+        outline-offset: 3px;
+    }
+
+    .settings-view .settings-toggle-label {
+        color: var(--settings-text);
+        font-size: 11px;
+        line-height: 1.45;
+        cursor: pointer;
+    }
+
+    .settings-view .settings-sync-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .settings-view .settings-sync-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        color: var(--settings-muted);
+        font-size: 10px;
+        line-height: 1.5;
+    }
+
+    .settings-view .settings-sync-item svg {
+        flex: 0 0 14px;
+        margin-top: 1px;
+        color: #91b08e;
+    }
+
+    .settings-view .settings-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-top: 18px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255, 255, 255, .055);
+    }
+
+    .settings-view .settings-footer-note {
+        margin: 0;
+        color: #89857d;
+        font-size: 10px;
+        line-height: 1.55;
+    }
+
+    .settings-view .settings-actions {
+        display: flex;
+        flex: 0 0 auto;
+        gap: 10px;
+    }
+
+    .settings-view .settings-button {
+        display: inline-flex;
+        min-height: 39px;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 9px 17px;
+        border: 1px solid rgba(255, 255, 255, .035);
+        border-radius: 999px;
+        background: linear-gradient(145deg, #30312f, #292a28);
+        color: var(--settings-text);
+        font: inherit;
+        font-size: 10px;
+        font-weight: 600;
+        white-space: nowrap;
+        cursor: pointer;
+        box-shadow:
+            6px 6px 12px rgba(12, 13, 12, .34),
+            -4px -4px 10px rgba(255, 246, 225, .04),
+            inset 1px 1px 1px rgba(255, 255, 255, .02);
+        transition:
+            transform .16s ease,
+            box-shadow .16s ease,
+            border-color .16s ease;
+    }
+
+    .settings-view .settings-button:hover {
+        transform: translateY(-1px);
+        border-color: rgba(215, 183, 126, .18);
+    }
+
+    .settings-view .settings-button:active {
+        transform: translateY(1px);
+        box-shadow:
+            inset 4px 4px 8px rgba(12, 13, 12, .4),
+            inset -2px -2px 5px rgba(255, 246, 225, .025);
+    }
+
+    .settings-view .settings-button:focus-visible {
+        outline: 2px solid rgba(215, 183, 126, .68);
+        outline-offset: 2px;
+    }
+
+    .settings-view .settings-button-primary {
+        border-color: rgba(246, 222, 177, .22);
+        background: linear-gradient(145deg, #e3c58f, #c9a66d);
+        color: #28251f;
+        box-shadow:
+            6px 7px 14px rgba(12, 13, 12, .34),
+            -3px -3px 8px rgba(255, 246, 225, .06),
+            inset 1px 1px 2px rgba(255, 255, 255, .3),
+            inset -1px -1px 2px rgba(91, 61, 21, .12);
+    }
+
+    .settings-view .settings-button-primary:hover {
+        color: #211e19;
+    }
+
+    .settings-view .settings-toast {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        z-index: 1000;
+        max-width: min(380px, calc(100vw - 32px));
+        padding: 13px 16px;
+        border: 1px solid rgba(215, 183, 126, .22);
+        border-radius: 14px;
+        background: linear-gradient(145deg, #30312f, #292a28);
+        color: var(--settings-text);
+        font-size: 12px;
+        line-height: 1.5;
+        box-shadow:
+            10px 10px 24px rgba(0, 0, 0, .4),
+            -4px -4px 12px rgba(255, 246, 225, .04);
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(8px);
+        transition: opacity .2s ease, transform .2s ease;
+    }
+
+    .settings-view .settings-toast.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    @media (max-width: 760px) {
+        .settings-view .settings-grid {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .settings-view .settings-card {
+            padding: 17px;
+            border-radius: 18px;
+        }
+
+        .settings-view .settings-footer {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .settings-view .settings-actions {
+            width: 100%;
+        }
+
+        .settings-view .settings-actions .settings-button {
+            flex: 1;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .settings-view *,
+        .settings-view *::before,
+        .settings-view *::after {
+            animation-duration: .01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: .01ms !important;
+        }
+    }
+</style>
+
+<div class="settings-view">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
+        <div style="min-width:0;">
+            <div class="page-breadcrumb">Ruang Bisnis / September 2026</div>
+            <h1 class="page-title" style="margin-bottom:4px;">Pengaturan</h1>
+            <p class="page-subtitle" style="margin-bottom:0;">Kelola profil bisnis, integrasi, keamanan, dan preferensi tampilan dari satu tempat.</p>
+        </div>
+        <div class="settings-button" style="cursor:default;padding:9px 14px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <path d="M16 2v4M8 2v4M3 10h18"/>
+            </svg>
+            30 September 2026
+        </div>
+    </div>
+
+    <form id="settings-form" autocomplete="on">
+        <div class="settings-grid">
+            <section class="settings-card">
+                <h2 class="settings-title">Profil Bisnis</h2>
+                <p class="settings-description" style="margin-bottom:16px;">Identitas utama yang ditampilkan di dashboard dan laporan.</p>
+
+                <div class="settings-fields">
+                    <div class="settings-field">
+                        <label class="settings-label" for="business-name">Nama bisnis</label>
+                        <input id="business-name" class="settings-control" type="text" value="BALHANA Fashion" data-setting="businessName">
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label" for="business-tagline">Tagline</label>
+                        <input id="business-tagline" class="settings-control" type="text" value="CATAT. PAHAMI. BERTUMBUH." data-setting="tagline">
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label" for="business-currency">Mata uang default</label>
+                        <input id="business-currency" class="settings-control" type="text" value="Rupiah (IDR)" readonly>
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label" for="business-description">Deskripsi singkat</label>
+                        <textarea id="business-description" class="settings-control" rows="2" data-setting="businessDescription">Reseller fashion yang fokus pada katalog internal, stok, dan keputusan restock berbasis minat.</textarea>
+                    </div>
+                </div>
+            </section>
+
+            <section class="settings-card">
+                <h2 class="settings-title">Akun Pengguna</h2>
+                <p class="settings-description" style="margin-bottom:16px;">Kelola akses utama dan informasi kontak pemilik.</p>
+
+                <div class="settings-fields">
+                    <div class="settings-field">
+                        <label class="settings-label" for="owner-name">Nama pengguna</label>
+                        <input id="owner-name" class="settings-control" type="text" value="Nadia Aulia" data-setting="ownerName">
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label" for="owner-email">Email utama</label>
+                        <input id="owner-email" class="settings-control" type="email" value="nadia@balhana.id" data-setting="ownerEmail">
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label" for="owner-phone">Nomor telepon</label>
+                        <input id="owner-phone" class="settings-control" type="tel" value="+62 812 3456 7890" data-setting="ownerPhone">
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label" for="owner-role">Peran akses</label>
+                        <input id="owner-role" class="settings-control" type="text" value="Pemilik bisnis" readonly>
+                    </div>
+                </div>
+            </section>
+
+            <section class="settings-card">
+                <h2 class="settings-title">Notifikasi</h2>
+                <p class="settings-description" style="margin-bottom:17px;">Atur saluran pemberitahuan untuk aktivitas penting.</p>
+
+                <div class="settings-fields">
+                    <div class="settings-toggle-row">
+                        <label class="settings-toggle" aria-label="Email untuk laporan harian">
+                            <input type="checkbox" checked data-setting="dailyReportEmail">
+                        </label>
+                        <label class="settings-toggle-label" for="notify-email">Email untuk laporan harian</label>
+                        <input id="notify-email" type="checkbox" checked data-setting="dailyReportEmail" hidden>
+                    </div>
+                    <div class="settings-toggle-row">
+                        <label class="settings-toggle" aria-label="Push untuk stok kritis">
+                            <input type="checkbox" checked data-setting="criticalStockPush">
+                        </label>
+                        <span class="settings-toggle-label">Push untuk stok kritis</span>
+                    </div>
+                    <div class="settings-toggle-row">
+                        <label class="settings-toggle" aria-label="SMS untuk pembayaran masuk">
+                            <input type="checkbox" data-setting="paymentSms">
+                        </label>
+                        <span class="settings-toggle-label">SMS untuk pembayaran masuk</span>
+                    </div>
+                    <div class="settings-toggle-row">
+                        <label class="settings-toggle" aria-label="Desktop untuk sinkronisasi data">
+                            <input type="checkbox" data-setting="syncDesktop">
+                        </label>
+                        <span class="settings-toggle-label">Desktop untuk sinkronisasi data</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="settings-card">
+                <h2 class="settings-title">Preferensi Tampilan</h2>
+                <p class="settings-description" style="margin-bottom:16px;">Sesuaikan tampilan dan pengalaman kerja.</p>
+
+                <div class="settings-fields">
+                    <div class="settings-field">
+                        <label class="settings-label" for="display-theme">Tema</label>
+                        <input id="display-theme" class="settings-control" type="text" value="Dark luxury" readonly>
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label" for="display-language">Bahasa</label>
+                        <select id="display-language" class="settings-control" data-setting="language">
+                            <option value="Indonesia">Indonesia</option>
+                            <option value="English">English</option>
+                        </select>
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label" for="display-date-format">Format tanggal</label>
+                        <select id="display-date-format" class="settings-control" data-setting="dateFormat">
+                            <option value="DD MMMM YYYY">DD MMMM YYYY</option>
+                            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                        </select>
+                    </div>
+                    <div class="settings-toggle-row" style="margin-top:2px;">
+                        <label class="settings-toggle" aria-label="Tampilkan ringkasan bisnis di sidebar">
+                            <input type="checkbox" checked data-setting="sidebarSummary">
+                        </label>
+                        <span class="settings-toggle-label">Tampilkan ringkasan bisnis di sidebar</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="settings-card">
+                <h2 class="settings-title">Toko &amp; Integrasi</h2>
+                <p class="settings-description" style="margin-bottom:16px;">Hubungkan marketplace, WhatsApp, dan alat operasional.</p>
+
+                <div class="settings-fields">
+                    <div class="settings-field">
+                        <label class="settings-label" for="store-name">Toko utama</label>
+                        <input id="store-name" class="settings-control" type="text" value="BALHANA Fashion (Shopee)" data-setting="storeName">
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label" for="store-whatsapp">Nomor WhatsApp</label>
+                        <input id="store-whatsapp" class="settings-control" type="tel" value="+62 812 3456 7880" data-setting="storeWhatsapp">
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label" for="store-tools">Alat operasional</label>
+                        <input id="store-tools" class="settings-control" type="text" value="WhatsApp Business, Google Drive, dan email utama" data-setting="operationalTools">
+                    </div>
+                    <div class="settings-toggle-row" style="margin-top:2px;">
+                        <label class="settings-toggle" aria-label="Sinkronkan stok otomatis setiap 4 jam">
+                            <input type="checkbox" checked data-setting="autoStockSync">
+                        </label>
+                        <span class="settings-toggle-label">Sinkronkan stok otomatis setiap 4 jam</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="settings-card">
+                <h2 class="settings-title">Keamanan</h2>
+                <p class="settings-description" style="margin-bottom:16px;">Lindungi akses dan privasi data bisnis.</p>
+
+                <div class="settings-fields">
+                    <div class="settings-field">
+                        <label class="settings-label" for="account-password">Kata sandi</label>
+                        <input id="account-password" class="settings-control" type="password" value="balhana-demo-password" readonly autocomplete="off">
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label" for="account-two-factor">Autentikasi dua faktor</label>
+                        <input id="account-two-factor" class="settings-control" type="text" value="Aktif • via aplikasi autentikasi" readonly>
+                    </div>
+                    <div class="settings-toggle-row" style="margin-top:2px;">
+                        <label class="settings-toggle" aria-label="Izinkan akses admin untuk pengaturan bisnis">
+                            <input type="checkbox" checked data-setting="adminSettingsAccess">
+                        </label>
+                        <span class="settings-toggle-label">Izinkan akses admin untuk pengaturan bisnis</span>
+                    </div>
+                    <div class="settings-toggle-row">
+                        <label class="settings-toggle" aria-label="Izinkan akses staf untuk laporan dan riset">
+                            <input type="checkbox" data-setting="staffReportsAccess">
+                        </label>
+                        <span class="settings-toggle-label">Izinkan akses staf untuk laporan dan riset</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="settings-card">
+                <h2 class="settings-title">Ekspor &amp; Sinkronisasi Data</h2>
+                <p class="settings-description" style="margin-bottom:16px;">Kelola cadangan dan sinkronisasi data bisnis.</p>
+
+                <div class="settings-fields">
+                    <div class="settings-field">
+                        <label class="settings-label" for="backup-destination">Tujuan cadangan</label>
+                        <input id="backup-destination" class="settings-control" type="text" value="Google Drive • folder BALHANA Backup" readonly>
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label" for="sync-frequency">Frekuensi sinkronisasi</label>
+                        <select id="sync-frequency" class="settings-control" data-setting="syncFrequency">
+                            <option value="Otomatis setiap 4 jam">Otomatis setiap 4 jam</option>
+                            <option value="Harian">Harian</option>
+                        </select>
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label" for="export-format">Format ekspor</label>
+                        <input id="export-format" class="settings-control" type="text" value="CSV • Excel • PDF" readonly>
+                    </div>
+                    <div class="settings-toggle-row" style="margin-top:2px;">
+                        <label class="settings-toggle" aria-label="Kirim laporan harian ke email utama">
+                            <input type="checkbox" checked data-setting="sendDailyReport">
+                        </label>
+                        <span class="settings-toggle-label">Kirim laporan harian ke email utama</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="settings-card">
+                <h2 class="settings-title">Catatan Sinkronisasi</h2>
+                <p class="settings-description" style="margin-bottom:18px;">Riwayat terakhir dan status cadangan.</p>
+
+                <div class="settings-sync-list">
+                    <div class="settings-sync-item">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>
+                        </svg>
+                        <span>Data tersimpan • 30 September 2026, 16.45 WIB</span>
+                    </div>
+                    <div class="settings-sync-item">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>
+                        </svg>
+                        <span>Cadangan otomatis terakhir berhasil • 30 September 2026, 16.00 WIB</span>
+                    </div>
+                    <div class="settings-sync-item">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/>
+                        </svg>
+                        <span>Sinkronisasi produk dan stok selesai • 30 September 2026, 15.58 WIB</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="settings-footer">
+            <p class="settings-footer-note">Perubahan akan diterapkan pada seluruh ruang bisnis. Pastikan Anda menyimpan perubahan sebelum meninggalkan halaman.</p>
+            <div class="settings-actions">
+                <button id="settings-cancel" class="settings-button" type="button">Batal</button>
+                <button class="settings-button settings-button-primary" type="submit">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l7 7v9a2 2 0 0 1-2 2Z"/>
+                        <path d="M17 21v-8H7v8M7 3v5h8"/>
+                    </svg>
+                    Simpan Perubahan
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <div id="settings-toast" class="settings-toast" role="status" aria-live="polite"></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const root = document.querySelector('.settings-view');
+    if (!root) return;
+
+    const form = root.querySelector('#settings-form');
+    const cancelButton = root.querySelector('#settings-cancel');
+    const toast = root.querySelector('#settings-toast');
+    const storageKey = 'balhana.settings.v1';
+    const controls = Array.from(root.querySelectorAll('[data-setting]'));
+    let savedValues = {};
+    let toastTimer;
+
+    function readCurrentValues() {
+        const values = {};
+        controls.forEach(function (control) {
+            values[control.dataset.setting] = control.type === 'checkbox'
+                ? control.checked
+                : control.value;
+        });
+        return values;
+    }
+
+    function applyValues(values) {
+        controls.forEach(function (control) {
+            if (!Object.prototype.hasOwnProperty.call(values, control.dataset.setting)) return;
+            if (control.type === 'checkbox') {
+                control.checked = Boolean(values[control.dataset.setting]);
+            } else {
+                control.value = values[control.dataset.setting];
+            }
+        });
+    }
+
+    function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add('is-visible');
+        window.clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(function () {
+            toast.classList.remove('is-visible');
+        }, 3200);
+    }
+
+    try {
+        const stored = window.localStorage.getItem(storageKey);
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed && typeof parsed === 'object') applyValues(parsed);
+        }
+    } catch (error) {
+        // Keep the default form values if browser storage is unavailable.
+    }
+
+    savedValues = readCurrentValues();
+
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        if (!form.reportValidity()) return;
+
+        const values = readCurrentValues();
+        try {
+            window.localStorage.setItem(storageKey, JSON.stringify(values));
+            savedValues = values;
+            showToast('Perubahan pengaturan berhasil disimpan di browser ini.');
+        } catch (error) {
+            showToast('Pengaturan belum dapat disimpan. Periksa ruang penyimpanan browser.');
+        }
+    });
+
+    cancelButton.addEventListener('click', function () {
+        applyValues(savedValues);
+        showToast('Perubahan yang belum disimpan dibatalkan.');
+    });
+});
+</script>
+@endsection

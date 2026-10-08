@@ -1,0 +1,894 @@
+@extends('layouts.app')
+
+@section('title', 'Laporan – BALHANA')
+
+@section('content')
+<style>
+    .report-view {
+        --report-text: #eeeae1;
+        --report-muted: #aaa69d;
+        --report-gold: #d7b77e;
+        --report-border: rgba(231, 215, 183, .055);
+        min-width: 0;
+        color: var(--report-text);
+    }
+
+    .report-view,
+    .report-view * {
+        box-sizing: border-box;
+    }
+
+    .report-view .page-breadcrumb {
+        color: var(--report-gold);
+        font-size: 9px;
+        letter-spacing: .045em;
+        text-transform: uppercase;
+    }
+
+    .report-view .page-title {
+        margin: 7px 0 4px;
+        color: var(--report-text);
+        font-size: clamp(28px, 3vw, 34px);
+        line-height: 1.15;
+        letter-spacing: -.035em;
+    }
+
+    .report-view .page-subtitle {
+        color: var(--report-muted);
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .report-view .report-card {
+        min-width: 0;
+        padding: 20px;
+        border: 1px solid var(--report-border);
+        border-radius: 22px;
+        background: linear-gradient(145deg, #30312f, #2b2c2a);
+        box-shadow:
+            10px 10px 22px rgba(12, 13, 12, .42),
+            -7px -7px 18px rgba(255, 246, 225, .045),
+            inset 1px 1px 1px rgba(255, 255, 255, .02);
+    }
+
+    .report-view .report-metrics .report-card {
+        min-height: 100px;
+        padding: 19px !important;
+        border-radius: 20px;
+    }
+
+    .report-view .report-heading {
+        margin: 0 0 5px;
+        color: var(--report-text);
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: -.02em;
+        line-height: 1.35;
+    }
+
+    .report-view .report-description {
+        margin: 0;
+        color: var(--report-muted);
+        font-size: 10px;
+        line-height: 1.55;
+    }
+
+    .report-view .report-control {
+        width: 100%;
+        min-width: 0;
+        min-height: 42px;
+        padding: 10px 13px;
+        border: 1px solid rgba(255, 255, 255, .025);
+        border-radius: 13px;
+        outline: none;
+        background: linear-gradient(145deg, #242523, #292a28);
+        color: var(--report-text);
+        font: inherit;
+        font-size: 11px;
+        box-shadow:
+            inset 5px 5px 10px rgba(12, 13, 12, .44),
+            inset -3px -3px 8px rgba(255, 246, 225, .025);
+        transition: border-color .18s ease, box-shadow .18s ease;
+    }
+
+    .report-view .report-control:focus {
+        border-color: rgba(215, 183, 126, .42);
+        box-shadow:
+            inset 3px 3px 7px rgba(0, 0, 0, .35),
+            inset -2px -2px 5px rgba(255, 246, 225, .02),
+            0 0 0 3px rgba(215, 183, 126, .08);
+    }
+
+    .report-view .report-control::placeholder {
+        color: #817e76;
+    }
+
+    .report-view input[type="date"].report-control {
+        color-scheme: dark;
+    }
+
+    .report-view .report-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .report-view .report-tab,
+    .report-view .report-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 36px;
+        padding: 8px 13px;
+        border: 1px solid rgba(255, 255, 255, .025);
+        border-radius: 999px;
+        background: linear-gradient(145deg, #30312f, #292a28);
+        color: var(--report-muted);
+        font: inherit;
+        font-size: 10px;
+        white-space: nowrap;
+        cursor: pointer;
+        box-shadow:
+            5px 5px 11px rgba(12, 13, 12, .32),
+            -4px -4px 10px rgba(255, 246, 225, .035),
+            inset 1px 1px 1px rgba(255, 255, 255, .018);
+        transition:
+            transform .16s ease,
+            color .16s ease,
+            box-shadow .16s ease,
+            background .16s ease;
+    }
+
+    .report-view .report-tab:hover,
+    .report-view .report-button:hover {
+        color: var(--report-text);
+        transform: translateY(-1px);
+    }
+
+    .report-view .report-tab:active,
+    .report-view .report-button:active {
+        transform: translateY(1px);
+        box-shadow:
+            inset 4px 4px 8px rgba(12, 13, 12, .4),
+            inset -2px -2px 5px rgba(255, 246, 225, .025);
+    }
+
+    .report-view .report-tab.is-active {
+        border-color: rgba(215, 183, 126, .14);
+        color: var(--report-gold);
+        box-shadow:
+            inset 3px 3px 7px rgba(12, 13, 12, .32),
+            inset -2px -2px 6px rgba(255, 246, 225, .025);
+    }
+
+    .report-view .report-button-primary {
+        border-color: rgba(246, 222, 177, .22);
+        background: linear-gradient(145deg, #e3c58f, #c9a66d);
+        color: #28251f;
+        font-weight: 600;
+        box-shadow:
+            6px 7px 14px rgba(12, 13, 12, .34),
+            -3px -3px 8px rgba(255, 246, 225, .06),
+            inset 1px 1px 2px rgba(255, 255, 255, .3),
+            inset -1px -1px 2px rgba(91, 61, 21, .12);
+    }
+
+    .report-view .report-button-primary:hover {
+        color: #211e19;
+    }
+
+    .report-view .report-button:focus-visible,
+    .report-view .report-tab:focus-visible,
+    .report-view .report-control:focus-visible {
+        outline: 2px solid rgba(215, 183, 126, .72);
+        outline-offset: 2px;
+    }
+
+    .report-view .report-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 0;
+        color: var(--report-muted);
+        font-size: 11px;
+    }
+
+    .report-view .report-row strong {
+        color: var(--report-text);
+        font-weight: 500;
+        text-align: right;
+    }
+
+    .report-view .report-gold {
+        color: var(--report-gold) !important;
+    }
+
+    .report-view .report-table-wrap {
+        width: 100%;
+        overflow-x: auto;
+        border-radius: 12px;
+        scrollbar-color: #625640 transparent;
+    }
+
+    .report-view .report-table {
+        width: 100%;
+        min-width: 590px;
+        border-collapse: separate;
+        border-spacing: 0 8px;
+        font-size: 10px;
+        text-align: left;
+    }
+
+    .report-view .report-table th {
+        padding: 11px 12px;
+        background: linear-gradient(145deg, #242523, #292a28);
+        color: #99958c;
+        font-size: 9px;
+        font-weight: 500;
+        white-space: nowrap;
+        box-shadow:
+            inset 3px 3px 6px rgba(12, 13, 12, .34),
+            inset -2px -2px 5px rgba(255, 246, 225, .02);
+    }
+
+    .report-view .report-table th:first-child {
+        border-radius: 10px 0 0 10px;
+    }
+
+    .report-view .report-table th:last-child {
+        border-radius: 0 10px 10px 0;
+    }
+
+    .report-view .report-table td {
+        padding: 12px;
+        background: linear-gradient(145deg, #30312f, #2a2b29);
+        color: var(--report-muted);
+        box-shadow:
+            inset 1px 1px 2px rgba(255, 255, 255, .018),
+            4px 5px 10px rgba(12, 13, 12, .22),
+            -2px -2px 6px rgba(255, 246, 225, .015);
+    }
+
+    .report-view .report-table td:first-child {
+        border-radius: 11px 0 0 11px;
+        color: var(--report-text);
+    }
+
+    .report-view .report-table td:last-child {
+        border-radius: 0 11px 11px 0;
+    }
+
+    .report-view .report-table tr[hidden] {
+        display: none;
+    }
+
+    .report-view .report-link {
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--report-gold);
+        font: inherit;
+        font-size: 10px;
+        cursor: pointer;
+    }
+
+    .report-view .report-link:hover {
+        text-decoration: underline;
+    }
+
+    .report-view .report-step {
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .report-view .report-step-number {
+        z-index: 1;
+        display: grid;
+        width: 27px;
+        height: 27px;
+        flex: 0 0 27px;
+        place-items: center;
+        border: 1px solid rgba(255, 255, 255, .035);
+        border-radius: 50%;
+        background: linear-gradient(145deg, #292a28, #242523);
+        color: var(--report-gold);
+        font-size: 11px;
+        box-shadow:
+            inset 3px 3px 6px rgba(12, 13, 12, .38),
+            3px 3px 7px rgba(12, 13, 12, .2),
+            -2px -2px 5px rgba(255, 246, 225, .025);
+    }
+
+    .report-view .report-step-copy {
+        display: flex;
+        flex: 1;
+        min-width: 0;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+        padding-top: 2px;
+    }
+
+    .report-view .report-step-copy strong {
+        display: block;
+        color: var(--report-text);
+        font-size: 10px;
+        font-weight: 600;
+    }
+
+    .report-view .report-step-copy small {
+        display: block;
+        margin-top: 3px;
+        color: var(--report-muted);
+        font-size: 9px;
+        line-height: 1.45;
+    }
+
+    .report-view .report-step-status {
+        color: var(--report-gold);
+        font-size: 9px;
+        white-space: nowrap;
+    }
+
+    .report-view .report-toast {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        z-index: 1000;
+        max-width: min(380px, calc(100vw - 32px));
+        padding: 13px 16px;
+        border: 1px solid rgba(215, 183, 126, .22);
+        border-radius: 14px;
+        background: #302f2c;
+        color: var(--report-text);
+        font-size: 12px;
+        line-height: 1.5;
+        box-shadow:
+            10px 10px 24px rgba(0, 0, 0, .4),
+            -4px -4px 12px rgba(255, 246, 225, .04);
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(8px);
+        transition: opacity .2s ease, transform .2s ease;
+    }
+
+    .report-view .report-toast.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .report-view .report-bottom-grid {
+        display: none !important;
+    }
+
+    @media (min-width: 761px) {
+        .report-view .report-columns > div {
+            display: contents !important;
+        }
+    }
+
+    @media (max-width: 760px) {
+        .report-view .report-metrics {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+
+        .report-view .report-columns,
+        .report-view .report-date-grid {
+            grid-template-columns: minmax(0, 1fr) !important;
+        }
+
+        .report-view .report-card {
+            padding: 17px;
+            border-radius: 19px;
+        }
+
+        .report-view .report-actions {
+            flex-wrap: wrap;
+        }
+
+        .report-view .report-actions .report-button {
+            flex: 1 1 150px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .report-view .report-metrics {
+            gap: 10px !important;
+        }
+
+        .report-view .report-metrics .report-card {
+            min-height: 92px;
+            padding: 15px !important;
+        }
+
+        .report-view .report-metrics .report-card > div:first-child {
+            font-size: 21px !important;
+        }
+
+        .report-view .report-tabs {
+            gap: 7px;
+        }
+
+        .report-view .report-tab {
+            min-height: 34px;
+            padding: 7px 11px;
+        }
+
+        .report-view .report-step-copy {
+            flex-wrap: wrap;
+        }
+    }
+
+    @media print {
+        body * {
+            visibility: hidden !important;
+        }
+
+        .report-view,
+        .report-view * {
+            visibility: visible !important;
+        }
+
+        .report-view {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            color: #222 !important;
+        }
+
+        .report-view .report-card {
+            background: #fff !important;
+            color: #222 !important;
+            box-shadow: none !important;
+            border: 1px solid #ddd !important;
+            break-inside: avoid;
+        }
+
+        .report-view .report-description,
+        .report-view .report-row,
+        .report-view .report-table td {
+            color: #555 !important;
+        }
+
+        .report-view .report-table td,
+        .report-view .report-table th {
+            background: #f5f5f5 !important;
+        }
+
+        .report-view .report-no-print {
+            display: none !important;
+        }
+    }
+</style>
+
+<div class="report-view">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
+        <div style="min-width:0;">
+            <div class="page-breadcrumb">Ruang Bisnis / September 2026</div>
+            <h1 class="page-title" style="margin-bottom:4px;">Laporan</h1>
+            <p class="page-subtitle" style="margin-bottom:0;">Pusat laporan penjualan, pembelian, stok, dan keuangan untuk pengambilan keputusan bisnis.</p>
+        </div>
+        <div class="report-button" style="cursor:default;padding:9px 14px;color:var(--report-text);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+            </svg>
+            September 2026
+        </div>
+    </div>
+
+    <div class="report-metrics" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:16px;">
+        <article class="report-card" style="padding:19px;">
+            <div style="font-size:25px;font-weight:600;letter-spacing:-.04em;line-height:1.15;">18,72 jt</div>
+            <div class="report-description report-gold" style="margin-top:8px;">Total penjualan bulan ini</div>
+        </article>
+        <article class="report-card" style="padding:19px;">
+            <div style="font-size:25px;font-weight:600;letter-spacing:-.04em;line-height:1.15;">4,28 jt</div>
+            <div class="report-description report-gold" style="margin-top:8px;">Total pembelian bulan ini</div>
+        </article>
+        <article class="report-card" style="padding:19px;">
+            <div style="font-size:25px;font-weight:600;letter-spacing:-.04em;line-height:1.15;">14,44 jt</div>
+            <div class="report-description report-gold" style="margin-top:8px;">Margin bersih bulan ini</div>
+        </article>
+        <article class="report-card" style="padding:19px;">
+            <div style="font-size:25px;font-weight:600;letter-spacing:-.04em;line-height:1.15;">124</div>
+            <div class="report-description report-gold" style="margin-top:8px;">Produk aktif saat ini</div>
+        </article>
+    </div>
+
+    <div class="report-columns" style="display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:16px;margin-bottom:16px;">
+        <div style="display:flex;flex-direction:column;gap:16px;min-width:0;">
+            <section class="report-card">
+                <h2 class="report-heading">Pilihan periode</h2>
+                <p class="report-description" style="margin-bottom:15px;">Atur rentang waktu untuk laporan yang akan dibuat.</p>
+
+                <div class="report-tabs" data-tab-group="period" style="margin-bottom:15px;">
+                    <button type="button" class="report-tab" data-period="today">Hari ini</button>
+                    <button type="button" class="report-tab" data-period="7">7 hari</button>
+                    <button type="button" class="report-tab is-active" data-period="30">30 hari</button>
+                    <button type="button" class="report-tab" data-period="90">90 hari</button>
+                    <button type="button" class="report-tab" data-period="year">Tahun ini</button>
+                </div>
+
+                <div class="report-date-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <label>
+                        <span class="report-description" style="display:block;margin:0 0 6px;">Dari tanggal</span>
+                        <input id="report-start-date" class="report-control" type="date" value="2026-09-01" aria-label="Tanggal awal laporan">
+                    </label>
+                    <label>
+                        <span class="report-description" style="display:block;margin:0 0 6px;">Sampai tanggal</span>
+                        <input id="report-end-date" class="report-control" type="date" value="2026-09-30" aria-label="Tanggal akhir laporan">
+                    </label>
+                </div>
+            </section>
+
+            <section class="report-card" style="flex:1;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:15px;">
+                    <div>
+                        <h2 class="report-heading">Laporan terbaru</h2>
+                        <p class="report-description">3 laporan terakhir yang dibuat dari ruang bisnis ini.</p>
+                    </div>
+                    <span id="report-count" class="report-description">3 laporan</span>
+                </div>
+
+                <div style="margin-bottom:12px;">
+                    <input id="report-search" class="report-control" type="search" placeholder="Cari laporan terbaru..." aria-label="Cari laporan terbaru">
+                </div>
+
+                <div class="report-table-wrap">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Judul laporan</th>
+                                <th>Kategori</th>
+                                <th>Periode</th>
+                                <th>Status</th>
+                                <th style="text-align:right;">Tindakan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="report-table-body">
+                            <tr data-report-row>
+                                <td>Laporan Penjualan<br><span class="report-description">September 2026</span></td>
+                                <td>Penjualan</td>
+                                <td>01–30 Sep</td>
+                                <td class="report-gold">Siap</td>
+                                <td style="text-align:right;"><button type="button" class="report-link" data-download="csv">Unduh PDF</button></td>
+                            </tr>
+                            <tr data-report-row>
+                                <td>Laporan Pembelian<br><span class="report-description">September 2026</span></td>
+                                <td>Pembelian</td>
+                                <td>01–30 Sep</td>
+                                <td class="report-gold">Siap</td>
+                                <td style="text-align:right;"><button type="button" class="report-link" data-download="csv">Unduh PDF</button></td>
+                            </tr>
+                            <tr data-report-row>
+                                <td>Laporan Stok<br><span class="report-description">Akhir Bulan</span></td>
+                                <td>Stok</td>
+                                <td>30 Sep</td>
+                                <td class="report-gold">Siap</td>
+                                <td style="text-align:right;"><button type="button" class="report-link" data-download="csv">Unduh PDF</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p id="report-empty" class="report-description" style="display:none;padding:10px 2px 0;">Tidak ada laporan yang cocok dengan pencarian.</p>
+                <p class="report-description" style="margin-top:9px;">Menampilkan 3 data • diperbarui 30 Sep 2026</p>
+            </section>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px;min-width:0;">
+            <section class="report-card">
+                <h2 class="report-heading">Kategori laporan</h2>
+                <p class="report-description" style="margin-bottom:15px;">Pilih jenis laporan yang ingin dibuat.</p>
+
+                <div class="report-tabs" data-tab-group="category" style="margin-bottom:15px;">
+                    <button type="button" class="report-tab is-active" data-category="Penjualan">Penjualan</button>
+                    <button type="button" class="report-tab" data-category="Pembelian">Pembelian</button>
+                    <button type="button" class="report-tab" data-category="Stok">Stok</button>
+                    <button type="button" class="report-tab" data-category="Keuangan">Keuangan</button>
+                </div>
+
+                <div class="report-row"><span>Detail laporan</span><strong class="report-gold">Ringkasan + detail</strong></div>
+                <div class="report-row" style="padding-bottom:0;"><span>Kelompok data</span><strong id="report-data-group">Produk &amp; varian</strong></div>
+            </section>
+
+            <section class="report-card" style="flex:1;">
+                <h2 class="report-heading">Status pembuatan</h2>
+                <p class="report-description" style="margin-bottom:18px;">Ikuti tahapan pembuatan laporan sebelum ekspor.</p>
+
+                <div style="display:flex;flex-direction:column;gap:17px;">
+                    <div class="report-step">
+                        <span class="report-step-number">1</span>
+                        <div class="report-step-copy">
+                            <div><strong>Pilih periode</strong><small id="report-period-summary">01–30 Sep 2026</small></div>
+                            <span class="report-step-status">Selesai</span>
+                        </div>
+                    </div>
+                    <div class="report-step">
+                        <span class="report-step-number">2</span>
+                        <div class="report-step-copy">
+                            <div><strong>Pilih kategori</strong><small id="report-category-summary">Penjualan</small></div>
+                            <span class="report-step-status">Selesai</span>
+                        </div>
+                    </div>
+                    <div class="report-step">
+                        <span class="report-step-number">3</span>
+                        <div class="report-step-copy">
+                            <div><strong>Pilih format</strong><small id="report-format-summary">PDF</small></div>
+                            <span class="report-step-status">Selesai</span>
+                        </div>
+                    </div>
+                    <div class="report-step">
+                        <span class="report-step-number">4</span>
+                        <div class="report-step-copy">
+                            <div><strong>Ekspor laporan</strong><small>Siap dibuat dan dibagikan</small></div>
+                            <span id="report-export-status" class="report-step-status">Siap</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="report-card">
+                <h2 class="report-heading">Format ekspor</h2>
+                <p class="report-description" style="margin-bottom:14px;">Pilih format yang paling sesuai untuk analisis dan sharing.</p>
+
+                <div class="report-tabs" data-tab-group="format" style="margin-bottom:14px;">
+                    <button type="button" class="report-tab is-active" data-format="PDF">PDF</button>
+                    <button type="button" class="report-tab" data-format="CSV">CSV</button>
+                    <button type="button" class="report-tab" data-format="Ringkasan">Ringkasan</button>
+                </div>
+
+                <div class="report-row"><span>Detail ekspor</span><strong id="report-export-detail">PDF</strong></div>
+                <div class="report-row" style="padding-bottom:0;"><span>Tujuan ekspor</span><strong class="report-gold">Unduh ke perangkat</strong></div>
+            </section>
+
+            <section class="report-card">
+                <h2 class="report-heading">Tindakan utama</h2>
+                <p class="report-description" style="margin-bottom:14px;">Buat laporan baru atau bagikan hasil yang sudah jadi.</p>
+
+                <div class="report-actions" style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:13px;">
+                    <button id="report-create" type="button" class="report-button report-button-primary">
+                        <span aria-hidden="true">＋</span> Buat Laporan Baru
+                    </button>
+                    <button id="report-share" type="button" class="report-button">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                            <path d="m8.6 13.5 6.8 4m0-11-6.8 4"/>
+                        </svg>
+                        Bagikan Laporan
+                    </button>
+                </div>
+
+                <div class="report-row"><span>Catatan</span><strong class="report-gold">Siap dibagikan</strong></div>
+                <div class="report-row" style="padding-bottom:0;"><span>Penerima</span><strong>Nadia Aulia</strong></div>
+            </section>
+        </div>
+    </div>
+
+    <p id="report-final-summary" hidden></p>
+    <div id="report-toast" class="report-toast" role="status" aria-live="polite"></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const root = document.querySelector('.report-view');
+    if (!root) return;
+
+    const startInput = root.querySelector('#report-start-date');
+    const endInput = root.querySelector('#report-end-date');
+    const categorySummary = root.querySelector('#report-category-summary');
+    const periodSummary = root.querySelector('#report-period-summary');
+    const formatSummary = root.querySelector('#report-format-summary');
+    const exportDetail = root.querySelector('#report-export-detail');
+    const dataGroup = root.querySelector('#report-data-group');
+    const finalSummary = root.querySelector('#report-final-summary');
+    const exportStatus = root.querySelector('#report-export-status');
+    const toast = root.querySelector('#report-toast');
+    let selectedCategory = 'Penjualan';
+    let selectedFormat = 'PDF';
+    let toastTimer;
+
+    function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add('is-visible');
+        window.clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(function () {
+            toast.classList.remove('is-visible');
+        }, 3200);
+    }
+
+    function formatDate(value) {
+        if (!value) return '—';
+        const date = new Date(value + 'T00:00:00');
+        return new Intl.DateTimeFormat('id-ID', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        }).format(date);
+    }
+
+    function updateSummary() {
+        const start = formatDate(startInput.value);
+        const end = formatDate(endInput.value);
+        const range = start + '–' + end;
+        periodSummary.textContent = range;
+        categorySummary.textContent = selectedCategory;
+        formatSummary.textContent = selectedFormat;
+        exportDetail.textContent = selectedFormat;
+        finalSummary.textContent = 'Laporan ' + selectedCategory + ' untuk periode ' + range + '.';
+    }
+
+    function dateString(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
+
+    root.querySelectorAll('[data-period]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            root.querySelectorAll('[data-period]').forEach(function (item) {
+                item.classList.remove('is-active');
+            });
+            button.classList.add('is-active');
+
+            const today = new Date();
+            let start = new Date(today);
+
+            if (button.dataset.period === 'today') {
+                start = new Date(today);
+            } else if (button.dataset.period === 'year') {
+                start = new Date(today.getFullYear(), 0, 1);
+            } else {
+                start.setDate(today.getDate() - Number(button.dataset.period) + 1);
+            }
+
+            startInput.value = dateString(start);
+            endInput.value = dateString(today);
+            updateSummary();
+        });
+    });
+
+    root.querySelectorAll('[data-category]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            root.querySelectorAll('[data-category]').forEach(function (item) {
+                item.classList.remove('is-active');
+            });
+            button.classList.add('is-active');
+            selectedCategory = button.dataset.category;
+            dataGroup.textContent = selectedCategory === 'Stok' ? 'Produk & varian' : 'Produk & varian';
+            updateSummary();
+        });
+    });
+
+    root.querySelectorAll('[data-format]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            root.querySelectorAll('[data-format]').forEach(function (item) {
+                item.classList.remove('is-active');
+            });
+            button.classList.add('is-active');
+            selectedFormat = button.dataset.format;
+            updateSummary();
+        });
+    });
+
+    startInput.addEventListener('change', updateSummary);
+    endInput.addEventListener('change', updateSummary);
+
+    const search = root.querySelector('#report-search');
+    const rows = Array.from(root.querySelectorAll('[data-report-row]'));
+    const count = root.querySelector('#report-count');
+    const empty = root.querySelector('#report-empty');
+
+    search.addEventListener('input', function () {
+        const query = search.value.trim().toLocaleLowerCase('id');
+        let visible = 0;
+
+        rows.forEach(function (row) {
+            const matches = row.textContent.toLocaleLowerCase('id').includes(query);
+            row.hidden = !matches;
+            if (matches) visible++;
+        });
+
+        count.textContent = visible + ' laporan';
+        empty.style.display = visible ? 'none' : 'block';
+    });
+
+    function downloadCsv(filename, data) {
+        const csv = data.map(function (row) {
+            return row.map(function (cell) {
+                return '"' + String(cell).replace(/"/g, '""') + '"';
+            }).join(',');
+        }).join('\r\n');
+
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    }
+
+    function exportCurrentReport(format) {
+        if (format === 'PDF') {
+            window.print();
+            exportStatus.textContent = 'Dibuka';
+            return;
+        }
+
+        if (format === 'CSV') {
+            downloadCsv('laporan-' + selectedCategory.toLowerCase() + '.csv', [
+                ['Judul laporan', 'Kategori', 'Periode', 'Status'],
+                ['Laporan ' + selectedCategory, selectedCategory, formatDate(startInput.value) + ' - ' + formatDate(endInput.value), 'Siap']
+            ]);
+            exportStatus.textContent = 'Diunduh';
+            showToast('File CSV laporan berhasil disiapkan.');
+            return;
+        }
+
+        const summary = [
+            ['Ringkasan Laporan BALHANA'],
+            ['Kategori', selectedCategory],
+            ['Periode', formatDate(startInput.value) + ' - ' + formatDate(endInput.value)],
+            ['Status', 'Siap']
+        ];
+        downloadCsv('ringkasan-' + selectedCategory.toLowerCase() + '.csv', summary);
+        exportStatus.textContent = 'Diunduh';
+        showToast('Ringkasan laporan berhasil disiapkan.');
+    }
+
+    root.querySelectorAll('[data-download="csv"]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            const row = button.closest('tr');
+            const cells = Array.from(row.querySelectorAll('td')).slice(0, 4).map(function (cell) {
+                return cell.innerText.replace(/\n/g, ' ');
+            });
+            const title = cells[0] || 'laporan';
+            downloadCsv(title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.csv', [
+                ['Judul laporan', 'Kategori', 'Periode', 'Status'],
+                cells
+            ]);
+            showToast('File CSV berhasil diunduh.');
+        });
+    });
+
+    root.querySelector('#report-create').addEventListener('click', function () {
+        updateSummary();
+        exportCurrentReport(selectedFormat);
+    });
+
+    root.querySelector('#report-share').addEventListener('click', async function () {
+        const shareText = finalSummary.textContent;
+
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: 'Laporan BALHANA', text: shareText });
+            } catch (error) {
+                if (error.name !== 'AbortError') showToast('Laporan belum dapat dibagikan dari perangkat ini.');
+            }
+            return;
+        }
+
+        if (navigator.clipboard && window.isSecureContext) {
+            try {
+                await navigator.clipboard.writeText(shareText);
+                showToast('Ringkasan laporan disalin. Sekarang bisa ditempel untuk dibagikan.');
+                return;
+            } catch (error) {
+                // Gunakan pesan fallback bila clipboard tidak tersedia.
+            }
+        }
+
+        showToast('Bagikan ringkasan ini: ' + shareText);
+    });
+
+    updateSummary();
+});
+</script>
+@endsection
