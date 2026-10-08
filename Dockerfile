@@ -34,6 +34,7 @@ RUN sed -i 's/Listen 80/Listen 3000/' /etc/apache2/ports.conf \
 
 ENV APP_ENV=production
 ENV APP_DEBUG=false
+ENV APP_KEY=base64:q+vzYue4jmDMm3HAqAE3BulJtUtgDtMqlaWScI1SXNE=
 ENV DB_CONNECTION=sqlite
 ENV SESSION_DRIVER=array
 ENV CACHE_STORE=array
